@@ -1,5 +1,4 @@
 -- Database: pa1-admbd-v1
-
 -- DROP DATABASE IF EXISTS "pa1-admbd-v1";
 CREATE DATABASE "pa1-admbd-v1"
     WITH
@@ -18,7 +17,7 @@ CREATE DATABASE "pa1-admbd-v1"
 -- 0) Preparação: usar transação de segurança para criar tudo
 BEGIN; -- início da transação principal
 
--- 2) Criação de tabelas (modelo típico do minimundo "Chaves Imóveis")
+-- 2) Criação de tabelas  - Chaves Imóveis
 -- proprietarios: donos dos imóveis
 CREATE TABLE IF NOT EXISTS proprietarios (
     id SERIAL PRIMARY KEY,
@@ -72,7 +71,7 @@ CREATE TABLE IF NOT EXISTS alugueis (
     data_contrato DATE
 );
 
--- 3) Inserir dados de exemplo - Esses dados servem para que as consultas do exercício retornem resultados reais.
+-- 3) Inserindo dados de exemplo
 -- proprietarios
 INSERT INTO proprietarios (nome, cpf, telefone) VALUES
 ('Mariana Silva', '111.111.111-11', '11-99999-0001'),
@@ -104,7 +103,7 @@ INSERT INTO imoveis (endereco, bairro, valor_aluguel, disponivel_aluguel, propri
 ('Av E, 500','Jardim', 3000.00, FALSE, 2)
 ON CONFLICT DO NOTHING;
 
--- vendas exemplo (associando alguns imóveis a corretores)
+-- vendas exemplo (atrlando alguns imóveis a corretores)
 INSERT INTO vendas (imovel_id, corretor_id, cliente_id, valor, data_venda) VALUES
 (3, 1, 2, 250000.00, '2021-06-15'),
 (5, 2, 3, 320000.00, '2022-09-10'),
@@ -122,7 +121,7 @@ ON CONFLICT DO NOTHING;
 
 COMMIT; -- finaliza a transação principal de criação e inserts
 
--- 4) Atividade 1: Criação de usuários e roles (20 pontos)
+-- Atividade 1: Criação de usuários e roles (20 pontos)
 -- a) Crie um usuário chamado "corretor" com senha.
 
 ROLLBACK; -- "limpar" a transação abortada
@@ -140,12 +139,8 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO gerente;
 GRANT gerente TO corretor;
 COMMIT;
 
--- ==========================
--- 5) Atividade 2: Consultas SQL (40 pontos)
+-- Atividade 2: Consultas SQL (40 pontos)
 --    (a) Liste todos os imóveis disponíveis para aluguel, mostrando endereço, valor e nome do proprietário.
--- ==========================
--- Comentário: usamos JOIN entre imoveis e proprietarios.
--- Resultado esperado: linhas com endereco, valor_aluguel, proprietario.nome para disponivel_aluguel = TRUE
 -- CONSULTA A:
 SELECT i.endereco, i.bairro, i.valor_aluguel, p.nome AS proprietario
 FROM imoveis i
@@ -153,19 +148,14 @@ LEFT JOIN proprietarios p ON i.proprietario_id = p.id
 WHERE i.disponivel_aluguel = TRUE
 ORDER BY i.endereco;
 
--- ==========================
 -- (b) Mostre o nome dos corretores que não realizaram nenhuma venda.
--- ==========================
--- Comentário: LEFT JOIN com vendas e filtrar onde vendas.corretor_id IS NULL
 -- CONSULTA B:
 SELECT c.nome
 FROM corretores c
 LEFT JOIN vendas v ON c.id = v.corretor_id
 WHERE v.id IS NULL;
 
--- ==========================
 -- (c) Exiba o total de imóveis vendidos por cada corretor, ordenando do maior para o menor.
--- ==========================
 -- CONSULTA C:
 SELECT c.nome AS corretor, COUNT(v.id) AS total_vendas
 FROM corretores c
@@ -173,9 +163,7 @@ LEFT JOIN vendas v ON c.id = v.corretor_id
 GROUP BY c.nome
 ORDER BY total_vendas DESC;
 
--- ==========================
 -- (d) Liste os clientes que alugaram imóveis mais de uma vez, mostrando o nome e a quantidade de aluguéis.
--- ==========================
 -- CONSULTA D:
 SELECT cl.nome AS cliente, COUNT(a.id) AS qtd_alugueis
 FROM clientes cl
@@ -184,10 +172,8 @@ GROUP BY cl.nome
 HAVING COUNT(a.id) > 1
 ORDER BY qtd_alugueis DESC;
 
--- ==========================
--- 6) Atividade 3: Manipulação de Dados (20 pontos)
+-- Atividade 3: Manipulação de Dados (20 pontos)
 --    (a) Insira um novo imóvel para aluguel, associando a um proprietário já existente.
--- ==========================
 BEGIN; -- usar transação
 -- proprietario_id por um existente (ex.: 1). 
 -- Aqui usamos proprietario_id = 2.
@@ -207,7 +193,7 @@ WHERE data_contrato < DATE '2020-01-01';
 
 COMMIT; -- finaliza a transação das manipulações
 
--- 7) Atividade 4: Segurança e Permissões (20 pontos)
+-- Atividade 4: Segurança e Permissões (20 pontos)
 --    (a) Revogue da role gerente a permissão de remover (DELETE) registros das tabelas.
 REVOKE DELETE ON ALL TABLES IN SCHEMA public FROM gerente;
 
